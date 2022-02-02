@@ -32,9 +32,11 @@ func (album *Album) createAnImage(imageName string) {
 		Name:      imageName,
 		CreatedAt: time.Now(),
 	}
+	album.ModifiedAt = time.Now()
 }
 
 func (album *Album) deleteAnImage(imageName string) {
 	keyName := common.HashName(imageName)
 	delete(album.ImageList, keyName)
+	album.ModifiedAt = time.Now()
 }
