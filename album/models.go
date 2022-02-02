@@ -21,6 +21,12 @@ func (album *Album) getAlbumImages() []interface{} {
 	return imageList
 }
 
+func (album *Album) getAnImage(imageId string) (interface{}, bool) {
+	var img interface{}
+	img, isPresent := album.ImageList[imageId]
+	return img, isPresent
+}
+
 func (album *Album) isImageNameAvailable(imageName string) bool {
 	_, isPresent := album.ImageList[imageName]
 	return isPresent

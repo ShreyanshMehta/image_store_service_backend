@@ -17,6 +17,7 @@ func HandleAlbumRequests(r *mux.Router) {
 	t.HandleFunc("/images", fetchImagesFromAlbum).Methods("GET")
 	t.HandleFunc("/add", addImageInAlbum).Methods("POST")
 	t.HandleFunc("/delete", deleteImageInAlbum).Methods("POST")
+	t.HandleFunc("/images/{image_id}", getImageInAlbum).Methods("GET")
 }
 
 func createAlbum(w http.ResponseWriter, r *http.Request) {
@@ -146,5 +147,25 @@ func fetchImagesFromAlbum(w http.ResponseWriter, r *http.Request) {
 	}
 	images := album.getAlbumImages()
 	_ = json.NewEncoder(w).Encode(common.Response{Data: images}.Success())
+	return
+}
+
+func getImageInAlbum(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	vars := mux.Vars(r)
+	albumId := vars["album_id"]
+	imageId := vars["image_id"]
+	album, isAlbumAvailable := db[albumId]
+	if !isAlbumAvailable {
+		_ = json.NewEncoder(w).Encode(common.Response{Message: "'" + albumId + "' was not available"}.Error())
+		return
+	}
+	img, isPresent := album.getAnImage(imageId)
+	if !isPresent {
+		_ = json.NewEncoder(w).Encode(
+			common.Response{Message: "Image with image_id'" + imageId + "' is not available"}.Error())
+		return
+	}
+	_ = json.NewEncoder(w).Encode(common.Response{Data: []interface{}{img}}.Success())
 	return
 }
