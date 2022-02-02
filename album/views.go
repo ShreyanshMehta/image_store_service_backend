@@ -101,7 +101,7 @@ func addImageInAlbum(w http.ResponseWriter, r *http.Request) {
 	}
 	album.createAnImage(imageName)
 	_ = json.NewEncoder(w).Encode(
-		common.Response{Message: "Image was added successfully to album'" + album.Name + "'"}.Success())
+		common.Response{Message: "Image was added successfully to album '" + album.Name + "'"}.Success())
 	return
 }
 
@@ -132,7 +132,7 @@ func deleteImageInAlbum(w http.ResponseWriter, r *http.Request) {
 	}
 	album.deleteAnImage(imageName)
 	_ = json.NewEncoder(w).Encode(
-		common.Response{Message: "Image was deleted successfully from album'" + album.Name + "'"}.Success())
+		common.Response{Message: "Image was deleted successfully from album '" + album.Name + "'"}.Success())
 	return
 }
 
@@ -142,7 +142,7 @@ func fetchImagesFromAlbum(w http.ResponseWriter, r *http.Request) {
 	albumId := vars["album_id"]
 	album, isAlbumAvailable := db[albumId]
 	if !isAlbumAvailable {
-		_ = json.NewEncoder(w).Encode(common.Response{Message: "'" + albumId + "' was not available"}.Error())
+		_ = json.NewEncoder(w).Encode(common.Response{Message: "'" + albumId + "' is not available"}.Error())
 		return
 	}
 	images := album.getAlbumImages()
@@ -157,7 +157,7 @@ func getImageInAlbum(w http.ResponseWriter, r *http.Request) {
 	imageId := vars["image_id"]
 	album, isAlbumAvailable := db[albumId]
 	if !isAlbumAvailable {
-		_ = json.NewEncoder(w).Encode(common.Response{Message: "'" + albumId + "' was not available"}.Error())
+		_ = json.NewEncoder(w).Encode(common.Response{Message: "'" + albumId + "' is not available"}.Error())
 		return
 	}
 	img, isPresent := album.getAnImage(imageId)
