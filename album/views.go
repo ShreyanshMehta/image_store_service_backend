@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"net/http"
-	"www.github.com/ShreyanshMehta/image_store_service/common"
+	"www.github.com/ShreyanshMehta/image_store_service_backend/common"
 )
 
 func HandleAlbumRequests(r *mux.Router) {

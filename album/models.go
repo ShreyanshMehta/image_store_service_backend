@@ -2,8 +2,8 @@ package album
 
 import (
 	"time"
-	"www.github.com/ShreyanshMehta/image_store_service/album/image"
-	"www.github.com/ShreyanshMehta/image_store_service/common"
+	"www.github.com/ShreyanshMehta/image_store_service_backend/album/image"
+	"www.github.com/ShreyanshMehta/image_store_service_backend/common"
 )
 
 type Album struct {

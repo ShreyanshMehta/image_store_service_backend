@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"www.github.com/ShreyanshMehta/image_store_service/album"
+	"www.github.com/ShreyanshMehta/image_store_service_backend/album"
 )
 
 func main() {

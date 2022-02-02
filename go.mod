@@ -1,4 +1,4 @@
-module www.github.com/ShreyanshMehta/image_store_service
+module www.github.com/ShreyanshMehta/image_store_service_backend
 
 go 1.17
 

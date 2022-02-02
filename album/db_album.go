@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"time"
-	"www.github.com/ShreyanshMehta/image_store_service/album/image"
-	"www.github.com/ShreyanshMehta/image_store_service/common"
+	"www.github.com/ShreyanshMehta/image_store_service_backend/album/image"
+	"www.github.com/ShreyanshMehta/image_store_service_backend/common"
 )
 
 var db map[string]*Album = make(map[string]*Album)
