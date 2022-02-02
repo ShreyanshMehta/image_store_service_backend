@@ -1,8 +1,8 @@
 package main
 
 import (
-	"encoding/json"
 	"github.com/gorilla/mux"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -11,21 +11,27 @@ import (
 
 func main() {
 	r := mux.NewRouter().PathPrefix("/api").Subrouter()
+	r.Use(loggingMiddleware)
 	setRoutes(r)
 	log.Fatal(http.ListenAndServe(":"+os.Getenv("PORT"), r))
 }
 
 func setRoutes(r *mux.Router) {
-	r.HandleFunc("/heath", healthCheck).Methods("GET")
+	r.HandleFunc("/heath", HealthCheckHandler).Methods("GET")
 	r.HandleFunc("/init", album.Init).Methods("GET")
 	album.HandleAlbumRequests(r)
 }
 
-func healthCheck(w http.ResponseWriter, r *http.Request) {
+func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
+	// A very simple health check.
 	w.Header().Set("Content-Type", "application/json")
-	err := json.NewEncoder(w).Encode(map[string]bool{"status": true})
-	if err != nil {
-		log.Fatal("Something went wrong.")
-	}
-	return
+	w.WriteHeader(http.StatusOK)
+	io.WriteString(w, `{"alive": true}`)
+}
+
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Println(r.RequestURI)
+		next.ServeHTTP(w, r)
+	})
 }
