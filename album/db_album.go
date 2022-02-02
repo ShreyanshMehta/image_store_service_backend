@@ -20,7 +20,7 @@ func createNewAlbumInDB(name string) {
 	}
 }
 
-func fetchAlbumsFromDB() interface{} {
+func fetchAlbumsFromDB() []interface{} {
 	albums := make([]interface{}, 0)
 	for key, value := range db {
 		albums = append(albums, map[string]interface{}{

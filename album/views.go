@@ -22,50 +22,50 @@ func HandleAlbumRequests(r *mux.Router) {
 func createAlbum(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if r.Body == nil {
-		_ = json.NewEncoder(w).Encode(common.ErrorMsg("Request body cannot be empty"))
+		_ = json.NewEncoder(w).Encode(common.Response{Message: "Request body cannot be empty"}.Error())
 		return
 	}
 	var payload map[string]interface{}
 	_ = json.NewDecoder(r.Body).Decode(&payload)
 	if _, isPresent := payload["album_name"]; !isPresent {
-		_ = json.NewEncoder(w).Encode(common.ErrorMsg("Body Parameter 'album_name' was not found"))
+		_ = json.NewEncoder(w).Encode(common.Response{Message: "Body Parameter 'album_name' was not found"}.Error())
 		return
 	}
 	albumName := payload["album_name"].(string)
 	if isAlbumNameAvailableInDB(albumName) {
-		_ = json.NewEncoder(w).Encode(common.ErrorMsg("Album name '" + albumName + "' already exist"))
+		_ = json.NewEncoder(w).Encode(common.Response{Message: "Album name '" + albumName + "' already exist"}.Error())
 		return
 	}
 	createNewAlbumInDB(albumName)
-	_ = json.NewEncoder(w).Encode(common.SuccessMsg("Album created successfully"))
+	_ = json.NewEncoder(w).Encode(common.Response{Message: "Album created successfully"}.Success())
 	return
 }
 
 func getAlbums(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(fetchAlbumsFromDB())
+	_ = json.NewEncoder(w).Encode(common.Response{Data: fetchAlbumsFromDB()}.Success())
 	return
 }
 
 func deleteAlbum(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if r.Body == nil {
-		_ = json.NewEncoder(w).Encode(common.ErrorMsg("Request body cannot be empty"))
+		_ = json.NewEncoder(w).Encode(common.Response{Message: "Request body cannot be empty"}.Error())
 		return
 	}
 	var payload map[string]interface{}
 	_ = json.NewDecoder(r.Body).Decode(&payload)
 	if _, isPresent := payload["album_id"]; !isPresent {
-		_ = json.NewEncoder(w).Encode(common.ErrorMsg("Body parameter 'album_id' was not found"))
+		_ = json.NewEncoder(w).Encode(common.Response{Message: "Body parameter 'album_id' was not found"}.Error())
 		return
 	}
 	albumId := payload["album_id"].(string)
 	if !isAlbumNameAvailableInDB(albumId) {
-		_ = json.NewEncoder(w).Encode(common.ErrorMsg("Album name '" + albumId + "' does not exist"))
+		_ = json.NewEncoder(w).Encode(common.Response{Message: "Album name '" + albumId + "' does not exist"}.Error())
 		return
 	}
 	deleteAlbumFromDB(albumId)
-	_ = json.NewEncoder(w).Encode(common.SuccessMsg("Album deleted successfully"))
+	_ = json.NewEncoder(w).Encode(common.Response{Message: "Album deleted successfully"}.Success())
 	return
 }
 
@@ -79,26 +79,28 @@ func addImageInAlbum(w http.ResponseWriter, r *http.Request) {
 	albumId := vars["album_id"]
 	album, isAlbumAvailable := db[albumId]
 	if !isAlbumAvailable {
-		_ = json.NewEncoder(w).Encode(common.ErrorMsg("'" + albumId + "' is not available"))
+		_ = json.NewEncoder(w).Encode(common.Response{Message: "'" + albumId + "' is not available"}.Error())
 		return
 	}
 	if r.Body == nil {
-		_ = json.NewEncoder(w).Encode(common.ErrorMsg("Request body cannot be empty"))
+		_ = json.NewEncoder(w).Encode(common.Response{Message: "Request body cannot be empty"}.Error())
 		return
 	}
 	var payload map[string]interface{}
 	_ = json.NewDecoder(r.Body).Decode(&payload)
 	if _, isPresent := payload["image_name"]; !isPresent {
-		_ = json.NewEncoder(w).Encode(common.ErrorMsg("Body parameter 'image_name' was not found"))
+		_ = json.NewEncoder(w).Encode(common.Response{Message: "Body parameter 'image_name' was not found"}.Error())
 		return
 	}
 	imageName := payload["image_name"].(string)
 	if album.isImageNameAvailable(imageName) {
-		_ = json.NewEncoder(w).Encode(common.ErrorMsg("Image name '" + imageName + "' already exists in album"))
+		_ = json.NewEncoder(w).Encode(
+			common.Response{Message: "Image name '" + imageName + "' already exists in album"}.Error())
 		return
 	}
 	album.createAnImage(imageName)
-	_ = json.NewEncoder(w).Encode(common.SuccessMsg("Image was added successfully to album'" + album.Name + "'"))
+	_ = json.NewEncoder(w).Encode(
+		common.Response{Message: "Image was added successfully to album'" + album.Name + "'"}.Success())
 	return
 }
 
@@ -108,26 +110,28 @@ func deleteImageInAlbum(w http.ResponseWriter, r *http.Request) {
 	albumId := vars["album_id"]
 	album, isAlbumAvailable := db[albumId]
 	if !isAlbumAvailable {
-		_ = json.NewEncoder(w).Encode(common.ErrorMsg("'" + albumId + "' is not available"))
+		_ = json.NewEncoder(w).Encode(common.Response{Message: "'" + albumId + "' is not available"}.Error())
 		return
 	}
 	if r.Body == nil {
-		_ = json.NewEncoder(w).Encode(common.ErrorMsg("Request body cannot be empty"))
+		_ = json.NewEncoder(w).Encode(common.Response{Message: "Request body cannot be empty"}.Error())
 		return
 	}
 	var payload map[string]interface{}
 	_ = json.NewDecoder(r.Body).Decode(&payload)
 	if _, isPresent := payload["image_name"]; !isPresent {
-		_ = json.NewEncoder(w).Encode(common.ErrorMsg("Body parameter 'image_name' was not found"))
+		_ = json.NewEncoder(w).Encode(common.Response{Message: "Body parameter 'image_name' was not found"}.Error())
 		return
 	}
 	imageName := payload["image_name"].(string)
 	if !album.isImageNameAvailable(imageName) {
-		_ = json.NewEncoder(w).Encode(common.ErrorMsg("Image name '" + imageName + "' does not exist in album"))
+		_ = json.NewEncoder(w).Encode(
+			common.Response{Message: "Image name '" + imageName + "' does not exist in album"}.Error())
 		return
 	}
 	album.deleteAnImage(imageName)
-	_ = json.NewEncoder(w).Encode(common.SuccessMsg("Image was deleted successfully from album'" + album.Name + "'"))
+	_ = json.NewEncoder(w).Encode(
+		common.Response{Message: "Image was deleted successfully from album'" + album.Name + "'"}.Success())
 	return
 }
 
@@ -137,14 +141,10 @@ func fetchImagesFromAlbum(w http.ResponseWriter, r *http.Request) {
 	albumId := vars["album_id"]
 	album, isAlbumAvailable := db[albumId]
 	if !isAlbumAvailable {
-		_ = json.NewEncoder(w).Encode(common.ErrorMsg("'" + albumId + "' was not available"))
+		_ = json.NewEncoder(w).Encode(common.Response{Message: "'" + albumId + "' was not available"}.Error())
 		return
 	}
 	images := album.getAlbumImages()
-	_ = json.NewEncoder(w).Encode(map[string]interface{}{
-		"images":     images,
-		"status":     true,
-		"tot_images": len(images),
-	})
+	_ = json.NewEncoder(w).Encode(common.Response{Data: images}.Success())
 	return
 }
