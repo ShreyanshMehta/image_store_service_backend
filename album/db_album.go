@@ -3,7 +3,7 @@ package album
 import (
 	"encoding/json"
 	"net/http"
-	"time"
+	"strconv"
 	"www.github.com/ShreyanshMehta/image_store_service_backend/album/image"
 	"www.github.com/ShreyanshMehta/image_store_service_backend/common"
 )
@@ -15,8 +15,8 @@ func createNewAlbumInDB(name string) {
 	db[keyName] = &Album{
 		Name:       name,
 		ImageList:  map[string]*image.Image{},
-		CreatedAt:  time.Now(),
-		ModifiedAt: time.Now(),
+		CreatedAt:  common.GetCurrentTime(),
+		ModifiedAt: common.GetCurrentTime(),
 	}
 }
 
@@ -44,14 +44,13 @@ func isAlbumNameAvailableInDB(name string) bool {
 }
 
 func Init(w http.ResponseWriter, _ *http.Request) {
-	s := []string{"Album 1", "Album 2", "Album 3"}
-	for _, a := range s {
-		createNewAlbumInDB(a)
+	for i := 1; i < 12; i++ {
+		album := "Album " + strconv.FormatInt(int64(i), 10)
+		createNewAlbumInDB(album)
+		for j := 1; j < 7; j++ {
+			img := "Image " + strconv.FormatInt(int64(j), 10)
+			db[common.HashName(album)].createAnImage(img)
+		}
 	}
-	db["album1"].createAnImage("image1")
-	db["album1"].createAnImage("image2")
-	db["album1"].createAnImage("image3")
-	db["album2"].createAnImage("image1")
-	db["album3"].createAnImage("image1")
 	_ = json.NewEncoder(w).Encode("Initialised dummy data successfully!!")
 }

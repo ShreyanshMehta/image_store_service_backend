@@ -22,6 +22,7 @@ func HandleAlbumRequests(r *mux.Router) {
 
 func createAlbum(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	if r.Body == nil {
 		_ = json.NewEncoder(w).Encode(common.Response{Message: "Request body cannot be empty"}.Error())
 		return
@@ -44,12 +45,14 @@ func createAlbum(w http.ResponseWriter, r *http.Request) {
 
 func getAlbums(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	_ = json.NewEncoder(w).Encode(common.Response{Data: fetchAlbumsFromDB()}.Success())
 	return
 }
 
 func deleteAlbum(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	if r.Body == nil {
 		_ = json.NewEncoder(w).Encode(common.Response{Message: "Request body cannot be empty"}.Error())
 		return
@@ -76,6 +79,7 @@ func deleteAlbum(w http.ResponseWriter, r *http.Request) {
 
 func addImageInAlbum(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	vars := mux.Vars(r)
 	albumId := vars["album_id"]
 	album, isAlbumAvailable := db[albumId]
@@ -107,6 +111,7 @@ func addImageInAlbum(w http.ResponseWriter, r *http.Request) {
 
 func deleteImageInAlbum(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	vars := mux.Vars(r)
 	albumId := vars["album_id"]
 	album, isAlbumAvailable := db[albumId]
@@ -138,6 +143,7 @@ func deleteImageInAlbum(w http.ResponseWriter, r *http.Request) {
 
 func fetchImagesFromAlbum(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	vars := mux.Vars(r)
 	albumId := vars["album_id"]
 	album, isAlbumAvailable := db[albumId]
@@ -152,6 +158,7 @@ func fetchImagesFromAlbum(w http.ResponseWriter, r *http.Request) {
 
 func getImageInAlbum(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	vars := mux.Vars(r)
 	albumId := vars["album_id"]
 	imageId := vars["image_id"]

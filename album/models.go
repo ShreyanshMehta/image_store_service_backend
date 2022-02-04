@@ -1,7 +1,6 @@
 package album
 
 import (
-	"time"
 	"www.github.com/ShreyanshMehta/image_store_service_backend/album/image"
 	"www.github.com/ShreyanshMehta/image_store_service_backend/common"
 )
@@ -9,14 +8,16 @@ import (
 type Album struct {
 	Name       string                  `json:"album_name"`
 	ImageList  map[string]*image.Image `json:"image_list"`
-	CreatedAt  time.Time               `json:"created_at"`
-	ModifiedAt time.Time               `json:"modified_at"`
+	CreatedAt  string                  `json:"created_at"`
+	ModifiedAt string                  `json:"modified_at"`
 }
 
 func (album *Album) getAlbumImages() []interface{} {
 	imageList := make([]interface{}, 0)
-	for _, img := range album.ImageList {
-		imageList = append(imageList, img.GetImageDetail())
+	for id, img := range album.ImageList {
+		temp := img.GetImageDetail()
+		temp["image_id"] = id
+		imageList = append(imageList, temp)
 	}
 	return imageList
 }
@@ -36,13 +37,13 @@ func (album *Album) createAnImage(imageName string) {
 	keyName := common.HashName(imageName)
 	album.ImageList[keyName] = &image.Image{
 		Name:      imageName,
-		CreatedAt: time.Now(),
+		CreatedAt: common.GetCurrentTime(),
 	}
-	album.ModifiedAt = time.Now()
+	album.ModifiedAt = common.GetCurrentTime()
 }
 
 func (album *Album) deleteAnImage(imageName string) {
 	keyName := common.HashName(imageName)
 	delete(album.ImageList, keyName)
-	album.ModifiedAt = time.Now()
+	album.ModifiedAt = common.GetCurrentTime()
 }

@@ -1,6 +1,9 @@
 package common
 
-import "strings"
+import (
+	"strings"
+	"time"
+)
 
 type Response struct {
 	Message   string
@@ -43,4 +46,10 @@ func (resp Response) Success() map[string]interface{} {
 		r["data"] = resp.Data
 	}
 	return r
+}
+
+func GetCurrentTime() string {
+	currentTime := time.Now()
+	currentTimeFormatted := currentTime.Format("01-02-2006 15:04:05 Monday")
+	return currentTimeFormatted
 }
