@@ -9,7 +9,7 @@ import (
 
 func HandleAlbumRequests(r *mux.Router) {
 	s := r.PathPrefix("/album").Subrouter()
-	s.HandleFunc("/fetch", getAlbums).Methods("GET")
+	s.HandleFunc("", getAlbums).Methods("GET")
 	s.HandleFunc("/create", createAlbum).Methods("POST")
 	s.HandleFunc("/delete", deleteAlbum).Methods("POST")
 
@@ -38,21 +38,22 @@ func createAlbum(w http.ResponseWriter, r *http.Request) {
 		_ = json.NewEncoder(w).Encode(common.Response{Message: "Album name '" + albumName + "' already exist"}.Error())
 		return
 	}
-	createNewAlbumInDB(albumName)
-	_ = json.NewEncoder(w).Encode(common.Response{Message: "Album created successfully"}.Success())
+	data := createNewAlbumInDB(albumName)
+	_ = json.NewEncoder(w).Encode(common.Response{Message: "Album created successfully"}.Success(data))
 	return
 }
 
 func getAlbums(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	_ = json.NewEncoder(w).Encode(common.Response{Data: fetchAlbumsFromDB()}.Success())
+	_ = json.NewEncoder(w).Encode(common.Response{}.Success(fetchAlbumsFromDB()))
 	return
 }
 
 func deleteAlbum(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
+
 	if r.Body == nil {
 		_ = json.NewEncoder(w).Encode(common.Response{Message: "Request body cannot be empty"}.Error())
 		return
@@ -69,7 +70,7 @@ func deleteAlbum(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	deleteAlbumFromDB(albumId)
-	_ = json.NewEncoder(w).Encode(common.Response{Message: "Album deleted successfully"}.Success())
+	_ = json.NewEncoder(w).Encode(common.Response{Message: "Album deleted successfully"}.Success(nil))
 	return
 }
 
@@ -103,9 +104,9 @@ func addImageInAlbum(w http.ResponseWriter, r *http.Request) {
 			common.Response{Message: "Image name '" + imageName + "' already exists in album"}.Error())
 		return
 	}
-	album.createAnImage(imageName)
+	data := album.createAnImage(imageName)
 	_ = json.NewEncoder(w).Encode(
-		common.Response{Message: "Image was added successfully to album '" + album.Name + "'"}.Success())
+		common.Response{Message: "Image was added successfully to album '" + album.Name + "'"}.Success(data))
 	return
 }
 
@@ -125,19 +126,19 @@ func deleteImageInAlbum(w http.ResponseWriter, r *http.Request) {
 	}
 	var payload map[string]interface{}
 	_ = json.NewDecoder(r.Body).Decode(&payload)
-	if _, isPresent := payload["image_name"]; !isPresent {
-		_ = json.NewEncoder(w).Encode(common.Response{Message: "Body parameter 'image_name' was not found"}.Error())
+	if _, isPresent := payload["image_id"]; !isPresent {
+		_ = json.NewEncoder(w).Encode(common.Response{Message: "Body parameter 'image_id' was not found"}.Error())
 		return
 	}
-	imageName := payload["image_name"].(string)
-	if !album.isImageNameAvailable(imageName) {
+	imageId := payload["image_id"].(string)
+	if _, isPresent := album.ImageList[imageId]; !isPresent {
 		_ = json.NewEncoder(w).Encode(
-			common.Response{Message: "Image name '" + imageName + "' does not exist in album"}.Error())
+			common.Response{Message: "Image ID '" + imageId + "' does not exist in album"}.Error())
 		return
 	}
-	album.deleteAnImage(imageName)
+	album.deleteAnImage(imageId)
 	_ = json.NewEncoder(w).Encode(
-		common.Response{Message: "Image was deleted successfully from album '" + album.Name + "'"}.Success())
+		common.Response{Message: "Image was deleted successfully from album '" + album.Name + "'"}.Success(nil))
 	return
 }
 
@@ -151,8 +152,8 @@ func fetchImagesFromAlbum(w http.ResponseWriter, r *http.Request) {
 		_ = json.NewEncoder(w).Encode(common.Response{Message: "'" + albumId + "' is not available"}.Error())
 		return
 	}
-	images := album.getAlbumImages()
-	_ = json.NewEncoder(w).Encode(common.Response{Data: images}.Success())
+	images := album.getAllAlbumImages()
+	_ = json.NewEncoder(w).Encode(common.Response{}.Success(images))
 	return
 }
 
@@ -173,6 +174,6 @@ func getImageInAlbum(w http.ResponseWriter, r *http.Request) {
 			common.Response{Message: "Image with image_id'" + imageId + "' is not available"}.Error())
 		return
 	}
-	_ = json.NewEncoder(w).Encode(common.Response{Data: []interface{}{img}}.Success())
+	_ = json.NewEncoder(w).Encode(common.Response{}.Success([]interface{}{img}))
 	return
 }

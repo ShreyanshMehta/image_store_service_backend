@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"io"
 	"log"
@@ -13,7 +14,11 @@ func main() {
 	r := mux.NewRouter().PathPrefix("/api").Subrouter()
 	r.Use(loggingMiddleware)
 	setRoutes(r)
-	log.Fatal(http.ListenAndServe(":"+os.Getenv("PORT"), r))
+
+	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type"})
+	originsOk := handlers.AllowedOrigins([]string{"*"})
+	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
+	log.Fatal(http.ListenAndServe(":"+os.Getenv("PORT"), handlers.CORS(originsOk, headersOk, methodsOk)(r)))
 }
 
 func setRoutes(r *mux.Router) {

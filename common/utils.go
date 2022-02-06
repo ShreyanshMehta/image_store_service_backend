@@ -7,7 +7,6 @@ import (
 
 type Response struct {
 	Message   string
-	Data      []interface{}
 	ErrorCode int
 	Status    bool
 }
@@ -27,23 +26,17 @@ func (resp Response) Error() map[string]interface{} {
 	if resp.ErrorCode != 0 {
 		r["error_code"] = resp.ErrorCode
 	}
-	if len(resp.Data) > 0 {
-		r["data"] = resp.Data
-	}
 	return r
 }
 
-func (resp Response) Success() map[string]interface{} {
+func (resp Response) Success(data interface{}) map[string]interface{} {
 	r := make(map[string]interface{})
 	r["status"] = true
 	if resp.Message != "" {
 		r["message"] = resp.Message
 	}
-	if resp.ErrorCode != 0 {
-		r["error_code"] = resp.ErrorCode
-	}
-	if len(resp.Data) > 0 {
-		r["data"] = resp.Data
+	if data != nil {
+		r["data"] = data
 	}
 	return r
 }
