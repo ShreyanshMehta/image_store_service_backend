@@ -9,8 +9,10 @@ RUN go mod download
 
 COPY . .
 
+EXPOSE 4000
+
 ENV PORT 4000
 
-RUN go build -o /docker-gs-ping
+RUN go build -o /docker-backend-service
 
-CMD ["/docker-gs-ping"]
+CMD ["/docker-backend-service"]
