@@ -13,7 +13,7 @@ func TestGetCurrentTime(t *testing.T) {
 	}{
 		{
 			name: "Testing current formatted, time",
-			want: time.Now().Format("01-02-2006 15:04:05 Monday"),
+			want: time.Now().Format("01-02-2006 15:04:05"),
 		},
 	}
 	for _, tt := range tests {

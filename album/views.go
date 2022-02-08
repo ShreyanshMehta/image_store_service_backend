@@ -3,6 +3,7 @@ package album
 import (
 	"encoding/json"
 	"github.com/gorilla/mux"
+	"log"
 	"net/http"
 	"www.github.com/ShreyanshMehta/image_store_service_backend/common"
 )
@@ -34,11 +35,22 @@ func createAlbum(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	albumName := payload["album_name"].(string)
-	if isAlbumNameAvailableInDB(albumName) {
+	isAvailable, err := isAlbumAvailableInDB(albumName)
+	if err != nil {
+		log.Println(err)
+		_ = json.NewEncoder(w).Encode(common.Response{Message: "Unable to complete operation"}.Error())
+		return
+	}
+	if isAvailable {
 		_ = json.NewEncoder(w).Encode(common.Response{Message: "Album name '" + albumName + "' already exist"}.Error())
 		return
 	}
-	data := createNewAlbumInDB(albumName)
+	data, err2 := createNewAlbumInDB(albumName)
+	if err2 != nil {
+		log.Println(err2)
+		_ = json.NewEncoder(w).Encode(common.Response{Message: "Unable to complete the operation"}.Error())
+		return
+	}
 	_ = json.NewEncoder(w).Encode(common.Response{Message: "Album created successfully"}.Success(data))
 	return
 }
@@ -46,7 +58,13 @@ func createAlbum(w http.ResponseWriter, r *http.Request) {
 func getAlbums(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	_ = json.NewEncoder(w).Encode(common.Response{}.Success(fetchAlbumsFromDB()))
+	data, err := fetchAlbumsFromDB()
+	if err != nil {
+		log.Println(err)
+		_ = json.NewEncoder(w).Encode(common.Response{Message: "Unable to fetch album"}.Error())
+		return
+	}
+	_ = json.NewEncoder(w).Encode(common.Response{}.Success(data))
 	return
 }
 
@@ -65,11 +83,22 @@ func deleteAlbum(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	albumId := payload["album_id"].(string)
-	if !isAlbumNameAvailableInDB(albumId) {
-		_ = json.NewEncoder(w).Encode(common.Response{Message: "Album name '" + albumId + "' does not exist"}.Error())
+	isAvailable, err := isAlbumAvailableInDB(albumId)
+	if err != nil {
+		log.Println(err)
+		_ = json.NewEncoder(w).Encode(common.Response{Message: "Unable to complete operation"}.Error())
 		return
 	}
-	deleteAlbumFromDB(albumId)
+	if !isAvailable {
+		_ = json.NewEncoder(w).Encode(common.Response{Message: "Album '" + albumId + "' does not exist"}.Error())
+		return
+	}
+	err = deleteAlbumFromDB(albumId)
+	if err != nil {
+		log.Println(err)
+		_ = json.NewEncoder(w).Encode(common.Response{Message: "Unable to complete operation."}.Error())
+		return
+	}
 	_ = json.NewEncoder(w).Encode(common.Response{Message: "Album deleted successfully"}.Success(nil))
 	return
 }
@@ -83,9 +112,14 @@ func addImageInAlbum(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	vars := mux.Vars(r)
 	albumId := vars["album_id"]
-	album, isAlbumAvailable := db[albumId]
-	if !isAlbumAvailable {
-		_ = json.NewEncoder(w).Encode(common.Response{Message: "'" + albumId + "' is not available"}.Error())
+	album, err := GetAnAlbum(albumId)
+	if err != nil {
+		log.Println(err)
+		_ = json.NewEncoder(w).Encode(common.Response{Message: "Unable to fetch the images"}.Error())
+		return
+	}
+	if album == nil {
+		_ = json.NewEncoder(w).Encode(common.Response{Message: "Album not found for given album id'" + albumId + "'"}.Error())
 		return
 	}
 	if r.Body == nil {
@@ -99,12 +133,23 @@ func addImageInAlbum(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	imageName := payload["image_name"].(string)
-	if album.isImageNameAvailable(imageName) {
+	isPresent, err2 := album.isImageNameAvailable(imageName)
+	if err2 != nil {
+		log.Println(err2)
+		_ = json.NewEncoder(w).Encode(common.Response{Message: "Unable to fetch the images"}.Error())
+		return
+	}
+	if isPresent {
 		_ = json.NewEncoder(w).Encode(
 			common.Response{Message: "Image name '" + imageName + "' already exists in album"}.Error())
 		return
 	}
-	data := album.createAnImage(imageName)
+	data, err3 := album.createAnImage(imageName)
+	if err3 != nil {
+		log.Println(err3)
+		_ = json.NewEncoder(w).Encode(common.Response{Message: "Unable to fetch the images"}.Error())
+		return
+	}
 	_ = json.NewEncoder(w).Encode(
 		common.Response{Message: "Image was added successfully to album '" + album.Name + "'"}.Success(data))
 	return
@@ -115,9 +160,14 @@ func deleteImageInAlbum(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	vars := mux.Vars(r)
 	albumId := vars["album_id"]
-	album, isAlbumAvailable := db[albumId]
-	if !isAlbumAvailable {
-		_ = json.NewEncoder(w).Encode(common.Response{Message: "'" + albumId + "' is not available"}.Error())
+	album, err := GetAnAlbum(albumId)
+	if err != nil {
+		log.Println(err)
+		_ = json.NewEncoder(w).Encode(common.Response{Message: "Unable to fetch the images"}.Error())
+		return
+	}
+	if album == nil {
+		_ = json.NewEncoder(w).Encode(common.Response{Message: "Album not found for given album id'" + albumId + "'"}.Error())
 		return
 	}
 	if r.Body == nil {
@@ -131,12 +181,23 @@ func deleteImageInAlbum(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	imageId := payload["image_id"].(string)
-	if _, isPresent := album.ImageList[imageId]; !isPresent {
+	isAvailable, err2 := album.isImageNameAvailable(imageId)
+	if err2 != nil {
+		log.Println(err2)
+		_ = json.NewEncoder(w).Encode(common.Response{Message: "Unable to fetch the images"}.Error())
+		return
+	}
+	if !isAvailable {
 		_ = json.NewEncoder(w).Encode(
 			common.Response{Message: "Image ID '" + imageId + "' does not exist in album"}.Error())
 		return
 	}
-	album.deleteAnImage(imageId)
+	err2 = album.deleteAnImage(imageId)
+	if err != nil {
+		log.Println(err)
+		_ = json.NewEncoder(w).Encode(common.Response{Message: "Unable to fetch the images"}.Error())
+		return
+	}
 	_ = json.NewEncoder(w).Encode(
 		common.Response{Message: "Image was deleted successfully from album '" + album.Name + "'"}.Success(nil))
 	return
@@ -147,13 +208,23 @@ func fetchImagesFromAlbum(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	vars := mux.Vars(r)
 	albumId := vars["album_id"]
-	album, isAlbumAvailable := db[albumId]
-	if !isAlbumAvailable {
-		_ = json.NewEncoder(w).Encode(common.Response{Message: "'" + albumId + "' is not available"}.Error())
+	album, err1 := GetAnAlbum(albumId)
+	if err1 != nil {
+		log.Println(err1)
+		_ = json.NewEncoder(w).Encode(common.Response{Message: "Unable to fetch the images"}.Error())
 		return
 	}
-	images := album.getAllAlbumImages()
-	_ = json.NewEncoder(w).Encode(common.Response{}.Success(images))
+	if album == nil {
+		_ = json.NewEncoder(w).Encode(common.Response{Message: "Album not found for given album id'" + albumId + "'"}.Error())
+		return
+	}
+	data, err2 := album.getAllAlbumImages()
+	if err2 != nil {
+		log.Println(err1)
+		_ = json.NewEncoder(w).Encode(common.Response{Message: "Unable to fetch the images"}.Error())
+		return
+	}
+	_ = json.NewEncoder(w).Encode(common.Response{}.Success(data))
 	return
 }
 
@@ -163,13 +234,23 @@ func getImageInAlbum(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	albumId := vars["album_id"]
 	imageId := vars["image_id"]
-	album, isAlbumAvailable := db[albumId]
-	if !isAlbumAvailable {
+	album, err := GetAnAlbum(albumId)
+	if err != nil {
+		log.Println(err)
+		_ = json.NewEncoder(w).Encode(common.Response{Message: "Unable to fetch the image"}.Error())
+		return
+	}
+	if album == nil {
 		_ = json.NewEncoder(w).Encode(common.Response{Message: "'" + albumId + "' is not available"}.Error())
 		return
 	}
-	img, isPresent := album.getAnImage(imageId)
-	if !isPresent {
+	img, err2 := album.getAnImage(imageId)
+	if err2 != nil {
+		log.Println(err2)
+		_ = json.NewEncoder(w).Encode(common.Response{Message: "Unable to fetch the image"}.Error())
+		return
+	}
+	if img == nil {
 		_ = json.NewEncoder(w).Encode(
 			common.Response{Message: "Image with image_id'" + imageId + "' is not available"}.Error())
 		return
