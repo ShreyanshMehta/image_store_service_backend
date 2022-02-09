@@ -8,11 +8,13 @@ import (
 	"net/http"
 	"os"
 	"www.github.com/ShreyanshMehta/image_store_service_backend/album"
+	"www.github.com/ShreyanshMehta/image_store_service_backend/config"
 )
 
 func main() {
 	r := mux.NewRouter().PathPrefix("/api").Subrouter()
 	r.Use(loggingMiddleware)
+	config.DatabaseSchemaInit()
 	setRoutes(r)
 
 	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type"})
@@ -22,7 +24,7 @@ func main() {
 }
 
 func setRoutes(r *mux.Router) {
-	r.HandleFunc("/heath", HealthCheckHandler).Methods("GET")
+	r.HandleFunc("/health", HealthCheckHandler).Methods("GET")
 	r.HandleFunc("/init", album.Init).Methods("GET")
 	album.HandleAlbumRequests(r)
 }
