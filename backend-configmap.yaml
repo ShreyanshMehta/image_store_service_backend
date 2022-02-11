@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-configmap
+data:
+  mysql_db_url: mysql-service
+  mysql_db_name: image_store_service

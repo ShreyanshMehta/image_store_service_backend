@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iss-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iss-frontend
+  template:
+    metadata:
+      labels:
+        app: iss-frontend
+    spec:
+      containers:
+        - image: mshreyansh1106/image_store_service_frontend:v2
+          name: iss-frontend
+          env:
+            - name: REACT_APP_API_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: frontend-configmap
+                  key: api_url
+          ports:
+            - containerPort: 3000
+              name: frontend
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+spec:
+  selector:
+    app: iss-frontend
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+      nodePort: 30000
